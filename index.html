@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMILE 2026 정부지원사업 대시보드</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f4f9;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #1F3A6E 0%, #276FBF 100%);
+      color: white;
+      padding: 28px 40px 20px;
+      box-shadow: 0 4px 20px rgba(31,58,110,0.25);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .logo-badge {
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.35);
+      border-radius: 10px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #cde8ff;
+    }
+    .header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.7);
+      margin-top: 4px;
+    }
+    .header-meta {
+      text-align: right;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.8;
+    }
+    .header-meta strong { color: rgba(255,255,255,0.9); }
+
+    /* ── KPI ROW ── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      padding: 20px 40px;
+      background: #e8eff9;
+      border-bottom: 1px solid #d0dbee;
+    }
+    .kpi-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 6px rgba(31,58,110,0.08);
+      border-left: 4px solid #276FBF;
+    }
+    .kpi-card.urgent { border-left-color: #D46000; }
+    .kpi-card.green  { border-left-color: #1A7340; }
+    .kpi-card.teal   { border-left-color: #0D7C8C; }
+    .kpi-label { font-size: 11px; color: #666; margin-bottom: 6px; font-weight: 600; letter-spacing: 0.5px; }
+    .kpi-value { font-size: 28px; font-weight: 900; color: #1F3A6E; line-height: 1; }
+    .kpi-value.orange { color: #D46000; }
+    .kpi-value.green  { color: #1A7340; }
+    .kpi-sub { font-size: 11px; color: #888; margin-top: 4px; }
+
+    /* ── MAIN CONTENT ── */
+    .main { padding: 24px 40px 40px; }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-label { font-size: 12px; color: #666; font-weight: 600; margin-right: 4px; }
+    .filter-btn {
+      padding: 7px 16px;
+      border-radius: 20px;
+      border: 1.5px solid #276FBF;
+      background: white;
+      color: #276FBF;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .filter-btn:hover { background: #e8f0fb; }
+    .filter-btn.active {
+      background: #276FBF;
+      color: white;
+    }
+    .filter-btn.urgent-btn { border-color: #D46000; color: #D46000; }
+    .filter-btn.urgent-btn:hover { background: #fff3e0; }
+    .filter-btn.urgent-btn.active { background: #D46000; color: white; }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #555;
+      margin-bottom: 12px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── CARDS GRID ── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── PROGRAM CARD ── */
+    .card {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(31,58,110,0.08);
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+      border: 1px solid #e5eaf3;
+    }
+    .card:hover { box-shadow: 0 4px 18px rgba(31,58,110,0.14); }
+    .card.hidden { display: none; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 18px 20px 12px;
+      gap: 12px;
+    }
+    .card-title-group { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1F3A6E;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 10px;
+    }
+    .tag-org  { background: #e8eff9; color: #276FBF; }
+    .tag-type { background: #e8f5ee; color: #1A7340; }
+
+    .card-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+    .status-open    { background: #e8f5ee; color: #1A7340; border: 1px solid #1A7340; }
+    .status-urgent  { background: #fff3e0; color: #D46000; border: 1px solid #D46000; }
+    .status-closed  { background: #f0f0f0; color: #888;    border: 1px solid #ccc; }
+    .deadline {
+      font-size: 12px;
+      color: #555;
+      font-weight: 600;
+      text-align: right;
+    }
+    .deadline.urgent-text { color: #D46000; }
+
+    /* ── FIT SCORE BAR ── */
+    .fit-section { padding: 0 20px 12px; }
+    .fit-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .fit-label { font-size: 11px; color: #777; font-weight: 600; }
+    .fit-pct   { font-size: 13px; font-weight: 800; }
+    .fit-bar-bg {
+      height: 8px;
+      border-radius: 4px;
+      background: #eee;
+      overflow: hidden;
+    }
+    .fit-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+    .fit-high   .fit-bar-fill { background: linear-gradient(90deg, #1A7340, #2ecc71); }
+    .fit-high   .fit-pct      { color: #1A7340; }
+    .fit-medium .fit-bar-fill { background: linear-gradient(90deg, #276FBF, #54a3e5); }
+    .fit-medium .fit-pct      { color: #276FBF; }
+    .fit-low    .fit-bar-fill { background: linear-gradient(90deg, #D46000, #f0a060); }
+    .fit-low    .fit-pct      { color: #D46000; }
+
+    /* ── EXPAND TOGGLE ── */
+    .card-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      cursor: pointer;
+      border-top: 1px solid #f0f3f9;
+      color: #888;
+      font-size: 12px;
+      gap: 4px;
+      user-select: none;
+      transition: background 0.1s;
+    }
+    .card-toggle:hover { background: #f7f9fd; color: #276FBF; }
+    .chevron {
+      display: inline-block;
+      transition: transform 0.2s;
+      font-size: 14px;
+    }
+    .expanded .chevron { transform: rotate(180deg); }
+
+    /* ── DETAIL PANEL ── */
+    .card-detail {
+      display: none;
+      padding: 0 20px 20px;
+      border-top: 1px solid #eef2fb;
+    }
+    .card-detail.open { display: block; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-top: 14px;
+    }
+    .detail-box {
+      background: #f7f9fd;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .detail-box-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #999;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .detail-box-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .strategy-box {
+      background: #e8f5ee;
+      border-left: 3px solid #1A7340;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .strategy-box-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #1A7340;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .strategy-box-text {
+      font-size: 12px;
+      color: #1A3020;
+      line-height: 1.6;
+    }
+
+    .gap-box {
+      background: #fff8f0;
+      border-left: 3px solid #D46000;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .gap-box-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #D46000;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .gap-box-text {
+      font-size: 12px;
+      color: #5a3010;
+      line-height: 1.6;
+    }
+
+    .source-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: #276FBF;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 5px 10px;
+      background: #e8f0fb;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    .source-link:hover { background: #d0e4fa; }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 11px;
+      color: #aaa;
+      border-top: 1px solid #e0e8f0;
+      background: #f7f9fd;
+      line-height: 1.8;
+    }
+    .footer a { color: #276FBF; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* ── NOTICE BANNER ── */
+    .notice {
+      background: #fff8f0;
+      border: 1px solid #f0c080;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      font-size: 12px;
+      color: #7a4010;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .header { padding: 20px; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); padding: 16px 20px; }
+      .main { padding: 16px 20px 32px; }
+      .cards-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .kpi-value { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo-row">
+      <div class="logo-badge">SMILE</div>
+      <div>
+        <h1>2026 정부지원사업 대시보드</h1>
+        <div class="header-sub">Stanford Mobile Inquiry-based Learning Environment · Korea GTM</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <strong>조사 기준일</strong> 2026년 5월 2일<br>
+      <strong>담당</strong> SMILE Korea GTM팀 · Paul Kim Lab
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ KPI ═══════════════════════════════ -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">총 조사 사업</div>
+    <div class="kpi-value">6</div>
+    <div class="kpi-sub">2026년 5월 기준</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="kpi-label">현재 접수중</div>
+    <div class="kpi-value green">4</div>
+    <div class="kpi-sub">즉시 신청 가능</div>
+  </div>
+  <div class="kpi-card urgent">
+    <div class="kpi-label">이달 마감</div>
+    <div class="kpi-value orange">1</div>
+    <div class="kpi-sub">5월 31일 이내</div>
+  </div>
+  <div class="kpi-card teal">
+    <div class="kpi-label">최대 지원금</div>
+    <div class="kpi-value" style="font-size:22px;">1.3억+</div>
+    <div class="kpi-sub">단일 사업 기준</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ MAIN ═══════════════════════════════ -->
+<div class="main">
+
+  <!-- Notice -->
+  <div class="notice">
+    ⚠️ <strong>중요:</strong> 국내 법인이 없으면 모든 사업 단독 신청 불가. 국내 파트너사(법인) 확보가 전제 조건입니다.
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <span class="filter-label">필터:</span>
+    <button class="filter-btn active" data-filter="all" onclick="filterCards('all', this)">전체</button>
+    <button class="filter-btn" data-filter="open" onclick="filterCards('open', this)">접수중</button>
+    <button class="filter-btn urgent-btn" data-filter="urgent" onclick="filterCards('urgent', this)">마감임박</button>
+    <button class="filter-btn" data-filter="overseas" onclick="filterCards('overseas', this)">해외진출</button>
+    <button class="filter-btn" data-filter="domestic" onclick="filterCards('domestic', this)">국내실증</button>
+  </div>
+
+  <div class="section-title">사업 목록</div>
+
+  <!-- ═══════════════════════════════ CARDS ═══════════════════════════════ -->
+  <div class="cards-grid" id="cardsGrid">
+
+    <!-- ── CARD 1: K-Global ── -->
+    <div class="card" data-tags="open overseas">
+      <div class="card-header">
+        <div class="card-title-group">
+          <div class="card-title">K-Global 해외진출 지원사업 (ICT·에듀테크)</div>
+          <div class="card-tags">
+            <span class="tag tag-org">NIPA / 과기부</span>
+            <span class="tag tag-type">해외진출</span>
+            <span class="tag tag-type">에듀테크</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge status-open">접수중</span>
+          <div class="deadline">2026.09.30</div>
+        </div>
+      </div>
+      <div class="fit-section fit-medium">
+        <div class="fit-label-row">
+          <span class="fit-label">SMILE 적합도</span>
+          <span class="fit-pct">70%</span>
+        </div>
+        <div class="fit-bar-bg"><div class="fit-bar-fill" style="width:70%"></div></div>
+      </div>
+      <div class="card-toggle" onclick="toggleCard(this)">
+        상세 보기 <span class="chevron">▼</span>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="detail-box-label">지원 금액</div>
+            <div class="detail-box-value">최대 1억 원<br>(과제당 기준)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 기간</div>
+            <div class="detail-box-value">2026.04.01 ~<br>2026.09.30</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 자격</div>
+            <div class="detail-box-value">국내 ICT 중소·벤처기업<br>(법인 필수)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">TRL 요건</div>
+            <div class="detail-box-value">TRL 5 이상<br>(해외 실적 우대)</div>
+          </div>
+        </div>
+        <div class="strategy-box">
+          <div class="strategy-box-label">✅ SMILE 전략</div>
+          <div class="strategy-box-text">
+            Paul Kim 교수 Stanford 네트워크 → 해외 50개국 실적 강조.<br>
+            국내 파트너사 (에듀테크 스타트업)와 공동 신청.<br>
+            에듀테크 트랙 지정 가능 → SMILE 해외 확장 비용 지원으로 활용.
+          </div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-label">⚠️ GAP 분석</div>
+          <div class="gap-box-text">
+            국내 법인 필수 → 파트너사 선정이 관건.<br>
+            "ICT 제품" 프레임이 강해 교육 솔루션 포지셔닝 설명 필요.
+          </div>
+        </div>
+        <a class="source-link" href="https://www.nipa.kr" target="_blank" rel="noopener">↗ NIPA 공식 공고 확인</a>
+      </div>
+    </div>
+
+    <!-- ── CARD 2: 교육공공데이터 AI대회 ── -->
+    <div class="card" data-tags="urgent domestic">
+      <div class="card-header">
+        <div class="card-title-group">
+          <div class="card-title">교육 공공데이터 AI 활용대회 (제8회)</div>
+          <div class="card-tags">
+            <span class="tag tag-org">KERIS / 교육부</span>
+            <span class="tag tag-type">국내실증</span>
+            <span class="tag tag-type">AI·데이터</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge status-urgent">마감임박</span>
+          <div class="deadline urgent-text">2026.05.31</div>
+        </div>
+      </div>
+      <div class="fit-section fit-medium">
+        <div class="fit-label-row">
+          <span class="fit-label">SMILE 적합도</span>
+          <span class="fit-pct">55%</span>
+        </div>
+        <div class="fit-bar-bg"><div class="fit-bar-fill" style="width:55%"></div></div>
+      </div>
+      <div class="card-toggle" onclick="toggleCard(this)">
+        상세 보기 <span class="chevron">▼</span>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="detail-box-label">수상 혜택</div>
+            <div class="detail-box-value">대상 500만원 +<br>KERIS 원장상</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 마감</div>
+            <div class="detail-box-value">2026.05.31<br>⚠️ 이달 마감!</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 자격</div>
+            <div class="detail-box-value">교사·학생·일반인 모두<br>(팀 신청 가능)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">데이터</div>
+            <div class="detail-box-value">KERIS 교육 공공데이터<br>활용 AI 모델</div>
+          </div>
+        </div>
+        <div class="strategy-box">
+          <div class="strategy-box-label">✅ SMILE 전략</div>
+          <div class="strategy-box-text">
+            SMILE 수업 데이터 (학생 질문 패턴) + 교육 공공데이터 결합 분석으로 출품.<br>
+            KERIS 원장 정제영 교수와의 접점 생성 목적으로도 활용 가능.<br>
+            입상 시 → KERIS 네트워크 공식 확보 + 언론 노출 효과.
+          </div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-label">⚠️ GAP 분석</div>
+          <div class="gap-box-text">
+            AI 모델 개발 중심 대회 → SMILE 자체보다 SMILE 데이터 활용 각도 필요.<br>
+            5월 31일 마감 — 즉시 출품 준비 착수 필요.
+          </div>
+        </div>
+        <a class="source-link" href="https://www.keris.or.kr" target="_blank" rel="noopener">↗ KERIS 공식 공고 확인</a>
+      </div>
+    </div>
+
+    <!-- ── CARD 3: AI 해외실증 PoC ── -->
+    <div class="card" data-tags="closed overseas">
+      <div class="card-header">
+        <div class="card-title-group">
+          <div class="card-title">AI·디지털전환 혁신기업 해외실증 지원 (Global PoC)</div>
+          <div class="card-tags">
+            <span class="tag tag-org">NIPA / 본투글로벌센터</span>
+            <span class="tag tag-type">해외진출</span>
+            <span class="tag tag-type">AI PoC</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge status-closed">마감</span>
+          <div class="deadline">2026.04.12 (마감)</div>
+        </div>
+      </div>
+      <div class="fit-section fit-high">
+        <div class="fit-label-row">
+          <span class="fit-label">SMILE 적합도</span>
+          <span class="fit-pct">90%</span>
+        </div>
+        <div class="fit-bar-bg"><div class="fit-bar-fill" style="width:90%"></div></div>
+      </div>
+      <div class="card-toggle" onclick="toggleCard(this)">
+        상세 보기 <span class="chevron">▼</span>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="detail-box-label">지원 금액</div>
+            <div class="detail-box-value">최대 1.3억 원<br>(해외 PoC 실증)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">접수 상태</div>
+            <div class="detail-box-value">⛔ 마감 (04.12)<br>2027년 재도전</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 자격</div>
+            <div class="detail-box-value">국내 AI 혁신기업<br>(법인 + 해외 파트너)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">지원 내용</div>
+            <div class="detail-box-value">해외 기관 PoC 비용<br>현지화·컨설팅</div>
+          </div>
+        </div>
+        <div class="strategy-box">
+          <div class="strategy-box-label">✅ 2027년 전략 (미리 준비)</div>
+          <div class="strategy-box-text">
+            SMILE 적합도 90%로 가장 높은 사업. 2026년 파일럿 성과 데이터 축적 → 2027년 신청 준비.<br>
+            본투글로벌센터 담당자 선제 관계 구축 + 해외 PoC 기관(인도·동남아) 사전 MOU 추진.
+          </div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-label">⚠️ GAP 분석</div>
+          <div class="gap-box-text">
+            이번 회차는 마감. 국내 법인 필수 — 파트너사 없으면 2027년도 단독 신청 불가.
+          </div>
+        </div>
+        <a class="source-link" href="https://www.born2global.com" target="_blank" rel="noopener">↗ 본투글로벌센터 확인</a>
+      </div>
+    </div>
+
+    <!-- ── CARD 4: KOICA INNOPORT ── -->
+    <div class="card" data-tags="closed overseas">
+      <div class="card-header">
+        <div class="card-title-group">
+          <div class="card-title">KOICA INNOPORT 2026 신규 입주기업</div>
+          <div class="card-tags">
+            <span class="tag tag-org">KOICA / 이노포트</span>
+            <span class="tag tag-type">해외진출</span>
+            <span class="tag tag-type">개도국·ODA</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge status-closed">마감</span>
+          <div class="deadline">2026.04.29 (결과발표 5.18)</div>
+        </div>
+      </div>
+      <div class="fit-section fit-medium">
+        <div class="fit-label-row">
+          <span class="fit-label">SMILE 적합도</span>
+          <span class="fit-pct">65%</span>
+        </div>
+        <div class="fit-bar-bg"><div class="fit-bar-fill" style="width:65%"></div></div>
+      </div>
+      <div class="card-toggle" onclick="toggleCard(this)">
+        상세 보기 <span class="chevron">▼</span>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="detail-box-label">지원 혜택</div>
+            <div class="detail-box-value">입주 공간 + ODA<br>연계 사업 매칭</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">결과 발표</div>
+            <div class="detail-box-value">2026.05.18<br>(합격 여부 확인)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 자격</div>
+            <div class="detail-box-value">개도국 진출 의향<br>사회적 가치 기업</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">특징</div>
+            <div class="detail-box-value">KOICA ODA 프로젝트<br>연계 가능</div>
+          </div>
+        </div>
+        <div class="strategy-box">
+          <div class="strategy-box-label">✅ SMILE 전략</div>
+          <div class="strategy-box-text">
+            SMILE의 개도국 교육 임팩트 (아프리카·동남아 적용 사례) 강조 포인트.<br>
+            Paul Kim 교수의 UNESCO·KOICA 연계 네트워크 활용 가능.<br>
+            이미 접수 마감 — 5.18 결과 발표 후 합격 기업과 파트너 논의 기회 탐색.
+          </div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-label">⚠️ GAP 분석</div>
+          <div class="gap-box-text">
+            이번 회차 마감. ODA·사회적 가치 프레이밍이 강해 상업 모델과 충돌 가능성 있음.
+          </div>
+        </div>
+        <a class="source-link" href="https://www.koica.go.kr" target="_blank" rel="noopener">↗ KOICA 이노포트 확인</a>
+      </div>
+    </div>
+
+    <!-- ── CARD 5: TIPS ── -->
+    <div class="card" data-tags="open domestic">
+      <div class="card-header">
+        <div class="card-title-group">
+          <div class="card-title">TIPS (민간투자주도형 기술창업지원)</div>
+          <div class="card-tags">
+            <span class="tag tag-org">중소벤처기업부</span>
+            <span class="tag tag-type">국내실증</span>
+            <span class="tag tag-type">스타트업</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge status-open">상시 접수</span>
+          <div class="deadline">상시 (~연중)</div>
+        </div>
+      </div>
+      <div class="fit-section fit-medium">
+        <div class="fit-label-row">
+          <span class="fit-label">SMILE 적합도</span>
+          <span class="fit-pct">60%</span>
+        </div>
+        <div class="fit-bar-bg"><div class="fit-bar-fill" style="width:60%"></div></div>
+      </div>
+      <div class="card-toggle" onclick="toggleCard(this)">
+        상세 보기 <span class="chevron">▼</span>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="detail-box-label">지원 금액</div>
+            <div class="detail-box-value">최대 5억 원<br>(R&D + 사업화)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 방법</div>
+            <div class="detail-box-value">TIPS 운영사 추천<br>→ 중기부 신청</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">전제 조건</div>
+            <div class="detail-box-value">엑셀러레이터/VC<br>5천만원 투자 선행</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">특징</div>
+            <div class="detail-box-value">투자 연계 R&D<br>글로벌 프로그램 포함</div>
+          </div>
+        </div>
+        <div class="strategy-box">
+          <div class="strategy-box-label">✅ SMILE 전략</div>
+          <div class="strategy-box-text">
+            에듀테크 전문 TIPS 운영사 (스파크랩, 매쉬업엔젤스 등) 통한 추천 루트 탐색.<br>
+            Paul Kim 교수 네트워크 → 교육 투자 VC 연결 → TIPS 추천 확보.<br>
+            R&D 명목으로 SMILE AI 기능 고도화 + 한국어 최적화 개발 비용 활용.
+          </div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-label">⚠️ GAP 분석</div>
+          <div class="gap-box-text">
+            TIPS 운영사 추천이 필수 — VC/엑셀러레이터 네트워크 없이는 진입 불가.<br>
+            국내 법인 + 초기 투자 5천만 원 유치가 선행 조건.
+          </div>
+        </div>
+        <a class="source-link" href="https://www.tips.or.kr" target="_blank" rel="noopener">↗ TIPS 프로그램 공식 사이트</a>
+      </div>
+    </div>
+
+    <!-- ── CARD 6: AI+S&T R&D ── -->
+    <div class="card" data-tags="open domestic">
+      <div class="card-header">
+        <div class="card-title-group">
+          <div class="card-title">AI+과학기술 융합 R&D 사업 (과기부 에듀테크 트랙)</div>
+          <div class="card-tags">
+            <span class="tag tag-org">과학기술정보통신부</span>
+            <span class="tag tag-type">국내실증</span>
+            <span class="tag tag-type">R&D</span>
+          </div>
+        </div>
+        <div class="card-right">
+          <span class="status-badge status-open">접수중</span>
+          <div class="deadline">2026.06~08 (확인 필요)</div>
+        </div>
+      </div>
+      <div class="fit-section fit-medium">
+        <div class="fit-label-row">
+          <span class="fit-label">SMILE 적합도</span>
+          <span class="fit-pct">65%</span>
+        </div>
+        <div class="fit-bar-bg"><div class="fit-bar-fill" style="width:65%"></div></div>
+      </div>
+      <div class="card-toggle" onclick="toggleCard(this)">
+        상세 보기 <span class="chevron">▼</span>
+      </div>
+      <div class="card-detail">
+        <div class="detail-grid">
+          <div class="detail-box">
+            <div class="detail-box-label">지원 금액</div>
+            <div class="detail-box-value">과제당 최대<br>3~5억 원 (다년)</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 기간</div>
+            <div class="detail-box-value">2026년 상반기<br>⚠️ 공고 재확인 요망</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">신청 자격</div>
+            <div class="detail-box-value">국내 연구 기관<br>대학·기업 컨소시엄</div>
+          </div>
+          <div class="detail-box">
+            <div class="detail-box-label">특징</div>
+            <div class="detail-box-value">AI 교육 기술 R&D<br>2022 개정 교육과정 연계</div>
+          </div>
+        </div>
+        <div class="strategy-box">
+          <div class="strategy-box-label">✅ SMILE 전략</div>
+          <div class="strategy-box-text">
+            Stanford GSE Paul Kim 교수 ↔ 국내 대학(서울대·이화여대 등) 컨소시엄 구성.<br>
+            "2022 개정 교육과정 탐구수업 AI 도구 개발"로 포지셔닝.<br>
+            KERIS 정제영 원장을 연구 책임자로 참여 요청 시 강력한 경쟁력 확보.
+          </div>
+        </div>
+        <div class="gap-box">
+          <div class="gap-box-label">⚠️ GAP 분석</div>
+          <div class="gap-box-text">
+            정확한 공고 일정 재확인 필요 (과기부 e나라도움 검색 권장).<br>
+            컨소시엄 구성에 3~6개월 소요 — 즉시 파트너 기관 접촉 시작 필요.
+          </div>
+        </div>
+        <a class="source-link" href="https://www.ntis.go.kr" target="_blank" rel="noopener">↗ 국가과학기술지식정보서비스 확인</a>
+      </div>
+    </div>
+
+  </div><!-- /cards-grid -->
+</div><!-- /main -->
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<div class="footer">
+  <div>SMILE Korea GTM · 2026 정부지원사업 전수 조사</div>
+  <div>Stanford Mobile Inquiry-based Learning Environment · Paul Kim Lab, Stanford GSE</div>
+  <div style="margin-top:6px;">
+    <a href="https://smile.stanford.edu" target="_blank">smile.stanford.edu</a> &nbsp;|&nbsp;
+    <a href="mailto:paulkim@stanford.edu">paulkim@stanford.edu</a> &nbsp;|&nbsp;
+    Last updated: 2026-05-02
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SCRIPT ═══════════════════════════════ -->
+<script>
+  function toggleCard(toggleEl) {
+    const card = toggleEl.closest('.card');
+    const detail = card.querySelector('.card-detail');
+    const isOpen = detail.classList.contains('open');
+    if (isOpen) {
+      detail.classList.remove('open');
+      toggleEl.classList.remove('expanded');
+      toggleEl.innerHTML = '상세 보기 <span class="chevron">▼</span>';
+    } else {
+      detail.classList.add('open');
+      toggleEl.classList.add('expanded');
+      toggleEl.innerHTML = '접기 <span class="chevron" style="transform:rotate(180deg)">▼</span>';
+    }
+  }
+
+  function filterCards(filter, btn) {
+    // Update button states
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Filter cards
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+      const tags = card.getAttribute('data-tags') || '';
+      if (filter === 'all') {
+        card.classList.remove('hidden');
+      } else if (filter === 'open') {
+        card.classList.toggle('hidden', !tags.includes('open') || tags.includes('closed'));
+      } else if (filter === 'urgent') {
+        card.classList.toggle('hidden', !tags.includes('urgent'));
+      } else if (filter === 'overseas') {
+        card.classList.toggle('hidden', !tags.includes('overseas'));
+      } else if (filter === 'domestic') {
+        card.classList.toggle('hidden', !tags.includes('domestic'));
+      }
+    });
+  }
+
+  // Animate fit bars on load
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.fit-bar-fill').forEach(bar => {
+      const w = bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(() => { bar.style.width = w; }, 200);
+    });
+  });
+</script>
+</body>
+</html>
